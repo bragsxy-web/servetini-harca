@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Servetini Harca</title>
+<style>
+:root{--bg:#f4f6fa;--card:#fff;--ink:#172033;--muted:#667085;--green:#16834a;--line:#e6eaf0}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.45 system-ui,-apple-system,Segoe UI,Roboto,Arial}
+header{background:#101828;color:white;padding:28px 16px;text-align:center}
+header h1{margin:0 0 6px;font-size:clamp(26px,5vw,40px)}header p{margin:0;color:#cbd5e1}
+.wrap{max-width:1100px;margin:22px auto;padding:0 14px}
+.balance{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:20px;text-align:center;position:sticky;top:8px;z-index:3;box-shadow:0 5px 20px #17203312}
+.balance small{color:var(--muted);font-weight:650;letter-spacing:.06em;text-transform:uppercase}
+#money{font-size:clamp(24px,5vw,42px);font-weight:850;color:var(--green);overflow-wrap:anywhere;margin:5px 0}
+.controls{display:flex;gap:9px;justify-content:center;flex-wrap:wrap;margin-top:12px}
+button,select{font:inherit;border:1px solid var(--line);border-radius:10px;padding:10px 14px;background:white;color:var(--ink);cursor:pointer}
+button:hover{filter:brightness(.97)}button:disabled{opacity:.4;cursor:not-allowed}
+.primary{background:#16794a;color:#fff;border-color:#16794a}
+.note{font-size:13px;color:var(--muted);margin:10px auto 0;max-width:720px}
+.stats{display:flex;justify-content:center;gap:22px;flex-wrap:wrap;color:var(--muted);font-size:14px;margin:14px 0}
+h2{font-size:22px;margin:25px 0 12px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:13px}
+.item{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;display:flex;flex-direction:column;min-height:190px}
+.emoji{font-size:34px}.item h3{margin:7px 0 2px;font-size:18px}.price{color:var(--green);font-weight:750;margin-bottom:12px}
+.actions{display:flex;gap:8px;margin-top:auto}.actions button{flex:1;padding:9px 8px}.count{align-self:center;color:var(--muted);font-size:13px;min-width:25px;text-align:center}
+footer{text-align:center;color:var(--muted);font-size:13px;padding:30px 12px}
+@media(max-width:480px){.balance{top:4px}.item{min-height:170px}}
+</style>
+</head>
+<body>
+<header><h1>💸 Servetini Harca</h1><p>Hayalindeki serveti harca, bakalım sıfırlayabilecek misin?</p></header>
+<main class="wrap">
+<section class="balance">
+  <small>Kalan paran</small>
+  <div id="money">$100.000.000.000</div>
+  <div class="controls">
+    <label>Başlangıç parası:
+      <select id="start">
+        <option value="100000000000">100 milyar $</option>
+        <option value="1000000000000">1 trilyon $</option>
+        <option value="1000000000000000">1 katrilyon $</option>
+        <option value="1e77">10⁷⁷ $ (devasa)</option>
+      </select>
+    </label>
+    <button id="reset">Sıfırla</button>
+  </div>
+  <div class="stats"><span>🛍️ Satın alınan: <b id="bought">0</b></span><span>💰 Harcanan: <b id="spent">$0</b></span></div>
+  <p class="note">Not: 10⁷⁷ dolar inanılmaz büyük bir miktar. Bu parayla normal ürünler alarak bitirmek pratikte mümkün değil; bitirmeyi denemek için 100 milyar veya 1 trilyon seçebilirsin.</p>
+</section>
+<h2>Satın alabileceklerin</h2>
+<div class="grid" id="items"></div>
+</main>
+<footer>Bu, eğlence amaçlı hazırlanmış kişisel bir para harcama oyunudur.</footer>
+<script>
+const products=[
+['☕','Bir kahve',5],['🍔','Hamburger',15],['🎮','Oyun konsolu',500],['📱','Akıllı telefon',1200],
+['🚲','Bisiklet',1500],['⌚','Lüks saat',25000],['🛵','Motosiklet',12000],['🚗','Spor araba',180000],
+['🏎️','Süper araba',3500000],['🏠','Lüks ev',8500000],['🏰','Malikâne',75000000],['🛥️','Lüks yat',120000000],
+['✈️','Özel jet',75000000],['🏝️','Özel ada',250000000],['🏢','Gökdelen',900000000],['🚀','Uzay yolculuğu',55000000],
+['⚽','Futbol kulübü',4000000000],['🏦','Büyük banka',15000000000],['🌆','Bir şehir projesi',50000000000],['🌍','Devasa uzay projesi',100000000000]
+];
+const fmt=n=>'$'+n.toLocaleString('en-US');
+let money=100000000000n,spent=0n,bought=0;
+const moneyEl=document.getElementById('money'),spentEl=document.getElementById('spent'),boughtEl=document.getElementById('bought');
+function formatBig(n){return '$'+n.toString().replace(/\B(?=(\d{3})+(?!\d))/g,'.')}
+function update(){moneyEl.textContent=formatBig(money);spentEl.textContent=formatBig(spent);boughtEl.textContent=bought.toLocaleString('tr-TR');}
+function buy(i){const p=BigInt(products[i][2])*100n;if(money<p)return;money-=p;spent+=p;bought++;update();renderButtons();}
+function renderButtons(){document.querySelectorAll('[data-buy]').forEach(b=>{const p=BigInt(products[+b.dataset.buy][2])*100n;b.disabled=money<p;});}
+const grid=document.getElementById('items');
+products.forEach((p,i)=>{const card=document.createElement('article');card.className='item';card.innerHTML=`<div class="emoji">${p[0]}</div><h3>${p[1]}</h3><div class="price">${fmt(p[2])}</div><div class="actions"><button data-buy="${i}" class="primary">Satın al</button><span class="count" id="count-${i}">0 adet</span></div>`;grid.appendChild(card);});
+const counts=Array(products.length).fill(0);
+grid.addEventListener('click',e=>{const b=e.target.closest('[data-buy]');if(!b)return;const i=+b.dataset.buy;const before=bought;buy(i);if(bought>before)document.getElementById('count-'+i).textContent=(++counts[i])+' adet';});
+document.getElementById('reset').addEventListener('click',()=>{const v=document.getElementById('start').value;money=v==='1e77'?10n**77n:BigInt(v)*100n;spent=0n;bought=0;counts.fill(0);counts.forEach((_,i)=>document.getElementById('count-'+i).textContent='0 adet');update();renderButtons();});
+document.getElementById('start').addEventListener('change',()=>document.getElementById('reset').click());
+update();renderButtons();
+</script>
+</body></html>
